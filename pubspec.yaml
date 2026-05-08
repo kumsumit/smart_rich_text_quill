@@ -1,0 +1,37 @@
+name: smart_rich_text_quill
+description: >
+  A production-ready Flutter rich text editor and renderer.
+  Supports Markdown editing, image/file upload, PDF viewing, and file downloads.
+  Built from scratch — zero flutter_quill dependency.
+version: 1.0.8
+homepage: https://github.com/your-org/smart_rich_text_quill
+publish_to: none
+
+environment:
+  sdk: ">=3.11.0 <4.0.0"
+  flutter: ">=3.41.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_markdown: ^0.7.7+1
+  cached_network_image_ce:
+    git: https://github.com/kumsumit/cached_network_image_ce.git
+  dio: ^5.9.2
+  path_provider:
+    git: https://github.com/kumsumit/path_provider.git
+  open_filex: ^4.5.0
+  mime: ^2.0.0
+  image_picker:
+    git: "https://github.com/kumsumit/image_picker.git" 
+  file_picker:
+    git: "https://github.com/sumitsharansatsangi/flutter_file_picker.git"
+  markdown: ^7.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
