@@ -20,7 +20,8 @@ dependencies:
   dio: ^5.9.2
   path_provider:
     git: https://github.com/kumsumit/path_provider.git
-  open_filex: ^4.5.0
+  open_filex: 
+    git: https://github.com/sumitsharansatsangi/open_file.git
   mime: ^2.0.0
   image_picker:
     git: "https://github.com/kumsumit/image_picker.git" 
