@@ -101,14 +101,84 @@ class SrqController extends ChangeNotifier {
   bool get canUndo => _undoStack.isNotEmpty;
   bool get canRedo => _redoStack.isNotEmpty;
 
+  // ─── Selection-aware format detection ────────────────────────────────────────
+
+  /// Returns true if the cursor or selection is inside **bold** text.
+  bool get selectionBoldActive {
+    final cursor = _textController.selection.baseOffset;
+    if (cursor < 0) return false;
+    return _cursorInsideMarker(_textController.text, cursor, r'\*\*([^*]+)\*\*');
+  }
+
+  /// Returns true if the cursor or selection is inside *italic* text.
+  bool get selectionItalicActive {
+    final cursor = _textController.selection.baseOffset;
+    if (cursor < 0) return false;
+    // Use negative lookahead-equivalent by matching single * not preceded/followed by *
+    return _cursorInsideMarker(_textController.text, cursor, r'(?<!\*)\*(?!\*)([^*]+)(?<!\*)\*(?!\*)');
+  }
+
+  /// Returns true if the cursor is inside ~~strikethrough~~ text.
+  bool get selectionStrikethroughActive {
+    final cursor = _textController.selection.baseOffset;
+    if (cursor < 0) return false;
+    return _cursorInsideMarker(_textController.text, cursor, r'~~([^~]+)~~');
+  }
+
+  /// Returns true if the cursor is inside <u>underline</u> text.
+  bool get selectionUnderlineActive {
+    final cursor = _textController.selection.baseOffset;
+    if (cursor < 0) return false;
+    return _cursorInsideMarker(_textController.text, cursor, r'<u>(.*?)</u>');
+  }
+
+  /// Returns the block format of the line where the cursor is.
+  SrqBlockFormat get selectionBlockFormat {
+    final sel = _textController.selection;
+    final text = _textController.text;
+    if (!sel.isValid) return SrqBlockFormat.paragraph;
+    final lineStart = text.lastIndexOf('\n', sel.start - 1) + 1;
+    final lineEnd = text.indexOf('\n', sel.start);
+    final line = text.substring(lineStart, lineEnd == -1 ? text.length : lineEnd);
+    return _blockFormatOf(line);
+  }
+
+  bool _cursorInsideMarker(String text, int cursor, String pattern) {
+    for (final match in RegExp(pattern, dotAll: true).allMatches(text)) {
+      if (cursor > match.start && cursor < match.end) return true;
+    }
+    return false;
+  }
+
+  SrqBlockFormat _blockFormatOf(String line) {
+    if (line.startsWith('# ')) return SrqBlockFormat.heading1;
+    if (line.startsWith('## ')) return SrqBlockFormat.heading2;
+    if (line.startsWith('### ')) return SrqBlockFormat.heading3;
+    if (line.startsWith('* [ ] ') || line.startsWith('- [ ] ')) return SrqBlockFormat.taskList;
+    if (line.startsWith('* ') || line.startsWith('- ')) return SrqBlockFormat.bulletList;
+    if (RegExp(r'^\d+\.\s').hasMatch(line)) return SrqBlockFormat.orderedList;
+    if (line.startsWith('> ')) return SrqBlockFormat.blockquote;
+    return SrqBlockFormat.paragraph;
+  }
+
   // ─── Load & set content ──────────────────────────────────────────────────────
 
-  /// Replace the entire document content.
+  /// Replace the entire document content (with undo snapshot).
   void setMarkdown(String markdown) {
     final normalized = ContentNormalizer.normalize(markdown);
     _pushUndoSnapshot();
     _markdown = normalized;
     _syncTextController();
+    notifyListeners();
+  }
+
+  /// Replace content without adding an undo snapshot (use for imports).
+  void setMarkdownSilently(String markdown) {
+    final normalized = ContentNormalizer.normalize(markdown);
+    _markdown = normalized;
+    _syncTextController();
+    _undoStack.clear();
+    _redoStack.clear();
     notifyListeners();
   }
 
@@ -121,10 +191,10 @@ class SrqController extends ChangeNotifier {
     _pushUndoSnapshot();
     final start = selection.start;
     final end = selection.end;
-    
+
     final newText = _markdown.replaceRange(start, end, text);
     _markdown = newText;
-    
+
     final newCursorPos = start + text.length;
     _textController.value = TextEditingValue(
       text: newText,
@@ -152,6 +222,9 @@ class SrqController extends ChangeNotifier {
   /// Toggle strikethrough on the selected text.
   void toggleStrikethrough() => _toggleInline('~~', '~~');
 
+  /// Toggle underline on the selected text (using HTML <u> tags).
+  void toggleUnderline() => _toggleInline('<u>', '</u>');
+
   /// Toggle inline code on the selected text.
   void toggleInlineCode() => _toggleInline('`', '`');
 
@@ -166,6 +239,27 @@ class SrqController extends ChangeNotifier {
       SrqBlockFormat.heading3,
     ][level - 1];
     notifyListeners();
+  }
+
+  /// Remove all block formatting from current line (back to paragraph).
+  void clearBlockFormat() {
+    _pushUndoSnapshot();
+    final text = _textController.text;
+    final sel = _textController.selection;
+    if (!sel.isValid) return;
+
+    final lineStart = text.lastIndexOf('\n', sel.start - 1) + 1;
+    final lineEnd = text.indexOf('\n', sel.start);
+    final end = lineEnd == -1 ? text.length : lineEnd;
+    final line = text.substring(lineStart, end);
+
+    final cleaned = _clearBlockPrefixes(line);
+    if (cleaned == line) return;
+
+    final newText = '${text.substring(0, lineStart)}$cleaned${end < text.length ? text.substring(end) : ''}';
+    final newCursor = (lineStart + cleaned.length).clamp(0, newText.length);
+    _activeBlock = SrqBlockFormat.paragraph;
+    _updateText(newText, newCursor);
   }
 
   /// Toggle bullet list on current line.
@@ -203,9 +297,8 @@ class SrqController extends ChangeNotifier {
     final text = _textController.text;
 
     if (!sel.isValid || sel.isCollapsed) {
-      // Insert code block at cursor with placeholder
       final idx = sel.isValid ? sel.start : text.length;
-      final inserted = '\n```\ncode here\n```\n';
+      const inserted = '\n```\ncode here\n```\n';
       final newText = text.substring(0, idx) + inserted + text.substring(idx);
       _updateText(newText, idx + inserted.length);
     } else {
@@ -304,7 +397,6 @@ class SrqController extends ChangeNotifier {
 
         if (prefixToInsert != null) {
           if (prevLine.trim() == prefixToInsert.trim()) {
-            // Empty list item. Remove the prefix.
             newText = newText.substring(0, prevLineStart) + '\n' + newText.substring(sel.start);
             final cursor = prevLineStart + 1;
             _textController.value = TextEditingValue(
@@ -312,7 +404,6 @@ class SrqController extends ChangeNotifier {
               selection: TextSelection.collapsed(offset: cursor),
             );
           } else {
-            // Auto insert next prefix
             newText = newText.substring(0, sel.start) + prefixToInsert + newText.substring(sel.start);
             final cursor = sel.start + prefixToInsert.length;
             _textController.value = TextEditingValue(
@@ -332,40 +423,17 @@ class SrqController extends ChangeNotifier {
   }
 
   void _updateActiveFormats() {
-    // Detect block type from current line
     final sel = _textController.selection;
     final text = _textController.text;
     if (!sel.isValid) return;
 
     final lineStart = text.lastIndexOf('\n', sel.start - 1) + 1;
     final lineEnd = text.indexOf('\n', sel.start);
-    final line = text.substring(
-      lineStart,
-      lineEnd == -1 ? text.length : lineEnd,
-    );
+    final line = text.substring(lineStart, lineEnd == -1 ? text.length : lineEnd);
 
-    SrqBlockFormat block;
-    if (line.startsWith('# ')) {
-      block = SrqBlockFormat.heading1;
-    } else if (line.startsWith('## ')) {
-      block = SrqBlockFormat.heading2;
-    } else if (line.startsWith('### ')) {
-      block = SrqBlockFormat.heading3;
-    } else if (line.startsWith('* [ ] ') || line.startsWith('- [ ] ')) {
-      block = SrqBlockFormat.taskList;
-    } else if (line.startsWith('* ') || line.startsWith('- ')) {
-      block = SrqBlockFormat.bulletList;
-    } else if (RegExp(r'^\d+\.\s').hasMatch(line)) {
-      block = SrqBlockFormat.orderedList;
-    } else if (line.startsWith('> ')) {
-      block = SrqBlockFormat.blockquote;
-    } else {
-      block = SrqBlockFormat.paragraph;
-    }
-
+    final block = _blockFormatOf(line);
     if (block != _activeBlock) {
       _activeBlock = block;
-      // notifyListeners already called in _onTextChanged
     }
   }
 
@@ -375,9 +443,6 @@ class SrqController extends ChangeNotifier {
     return _SrqTextEditingController(text: text);
   }
 
-
-
-  /// Used for initial setup - called in constructor body equivalent.
   void _init() {
     _textController.addListener(_onTextChanged);
   }
@@ -407,8 +472,7 @@ class SrqController extends ChangeNotifier {
     final sel = controller.selection;
     final current = controller.text;
 
-    final idx =
-        sel.isValid ? sel.start : current.length;
+    final idx = sel.isValid ? sel.start : current.length;
     final newText = current.substring(0, idx) + text + current.substring(idx);
     _updateText(newText, idx + text.length);
   }
@@ -430,9 +494,7 @@ class SrqController extends ChangeNotifier {
     final text = controller.text;
 
     if (!sel.isValid || sel.isCollapsed) {
-      // No selection: just insert markers at cursor
       _insertAtCursor('$prefix$suffix');
-      // Move cursor between markers
       final newOffset = (sel.isValid ? sel.start : text.length) + prefix.length;
       _textController.selection =
           TextSelection.collapsed(offset: newOffset.clamp(0, _markdown.length));
@@ -443,7 +505,6 @@ class SrqController extends ChangeNotifier {
     final before = text.substring(0, sel.start);
     final after = text.substring(sel.end);
 
-    // Toggle: if already wrapped, unwrap; otherwise wrap
     if (selected.startsWith(prefix) && selected.endsWith(suffix)) {
       final inner =
           selected.substring(prefix.length, selected.length - suffix.length);
@@ -454,8 +515,7 @@ class SrqController extends ChangeNotifier {
     }
   }
 
-  void _toggleLinePrefix(String prefix,
-      {bool clearOtherPrefixes = false}) {
+  void _toggleLinePrefix(String prefix, {bool clearOtherPrefixes = false}) {
     _pushUndoSnapshot();
     final text = _textController.text;
     final sel = _textController.selection;
@@ -467,14 +527,12 @@ class SrqController extends ChangeNotifier {
     final line = text.substring(lineStart, end);
 
     String newLine;
-    String before = text.substring(0, lineStart);
-    String after = end < text.length ? text.substring(end) : '';
+    final before = text.substring(0, lineStart);
+    final after = end < text.length ? text.substring(end) : '';
 
     if (line.startsWith(prefix)) {
-      // Remove prefix
       newLine = line.substring(prefix.length);
     } else {
-      // Clear other block prefixes first
       String cleaned = line;
       if (clearOtherPrefixes) {
         cleaned = _clearBlockPrefixes(line);
@@ -483,8 +541,7 @@ class SrqController extends ChangeNotifier {
     }
 
     final newText = '$before$newLine$after';
-    final newCursor = (lineStart + newLine.length)
-        .clamp(0, newText.length);
+    final newCursor = (lineStart + newLine.length).clamp(0, newText.length);
     _updateText(newText, newCursor);
   }
 
@@ -526,49 +583,99 @@ extension SrqControllerFactory on SrqController {
 class _SrqTextEditingController extends TextEditingController {
   _SrqTextEditingController({String? text}) : super(text: text);
 
+  static const _prefixColor = Color(0xFF94A3B8);
+  static const _h1Size = 26.0;
+  static const _h2Size = 21.0;
+  static const _h3Size = 17.0;
+  static const _codeBackground = Color(0xFFF3F4F6);
+  static const _codeColor = Color(0xFFD63B3B);
+
   @override
   TextSpan buildTextSpan({
     required BuildContext context,
     TextStyle? style,
     required bool withComposing,
   }) {
-    if (text.isEmpty) {
-      return TextSpan(style: style, text: text);
-    }
+    if (text.isEmpty) return TextSpan(style: style, text: '');
 
-    final List<TextSpan> spans = [];
-    final pattern = RegExp(r'(\*\*.*?\*\*|\*.*?\*|~~.*?~~|`.*?`)', dotAll: true);
-    int lastMatchEnd = 0;
+    final spans = <InlineSpan>[];
+    final lines = text.split('\n');
 
-    for (final match in pattern.allMatches(text)) {
-      if (match.start > lastMatchEnd) {
-        spans.add(TextSpan(text: text.substring(lastMatchEnd, match.start), style: style));
-      }
-      
-      final matchedText = match.group(0)!;
-      TextStyle currentStyle = style ?? const TextStyle();
-      
-      if (matchedText.startsWith('**') && matchedText.endsWith('**')) {
-        currentStyle = currentStyle.copyWith(fontWeight: FontWeight.bold);
-      } else if (matchedText.startsWith('*') && matchedText.endsWith('*')) {
-        currentStyle = currentStyle.copyWith(fontStyle: FontStyle.italic);
-      } else if (matchedText.startsWith('~~') && matchedText.endsWith('~~')) {
-        currentStyle = currentStyle.copyWith(decoration: TextDecoration.lineThrough);
-      } else if (matchedText.startsWith('`') && matchedText.endsWith('`')) {
-        currentStyle = currentStyle.copyWith(
-          backgroundColor: const Color(0xFFF3F4F6),
-          color: const Color(0xFFD63B3B),
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      final nl = i < lines.length - 1 ? '\n' : '';
+
+      final headingMatch = RegExp(r'^(#{1,3}) (.*)$').firstMatch(line);
+      if (headingMatch != null) {
+        final level = headingMatch.group(1)!.length;
+        final content = headingMatch.group(2) ?? '';
+        final size = level == 1 ? _h1Size : level == 2 ? _h2Size : _h3Size;
+
+        final prefixStyle = (style ?? const TextStyle()).copyWith(
+          color: _prefixColor,
+          fontSize: size,
+          fontWeight: FontWeight.w800,
         );
-      }
-      
-      spans.add(TextSpan(text: matchedText, style: currentStyle));
-      lastMatchEnd = match.end;
-    }
+        final contentStyle = (style ?? const TextStyle()).copyWith(
+          fontSize: size,
+          fontWeight: FontWeight.w800,
+        );
 
-    if (lastMatchEnd < text.length) {
-      spans.add(TextSpan(text: text.substring(lastMatchEnd), style: style));
+        spans.add(TextSpan(text: '${'#' * level} ', style: prefixStyle));
+        spans.addAll(_inlineSpans(content, contentStyle));
+        if (nl.isNotEmpty) spans.add(TextSpan(text: nl, style: style));
+      } else {
+        spans.addAll(_inlineSpans(line, style));
+        if (nl.isNotEmpty) spans.add(TextSpan(text: nl, style: style));
+      }
     }
 
     return TextSpan(children: spans, style: style);
+  }
+
+  List<InlineSpan> _inlineSpans(String text, TextStyle? style) {
+    if (text.isEmpty) return [];
+
+    final spans = <InlineSpan>[];
+    // Order matters: ** before * to avoid mis-matching single *
+    final pattern = RegExp(
+      r'(\*\*[^*]+\*\*|\*[^*]+\*|~~[^~]+~~|`[^`]+`|<u>[^<]+</u>)',
+      dotAll: true,
+    );
+    int lastEnd = 0;
+
+    for (final match in pattern.allMatches(text)) {
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(text: text.substring(lastEnd, match.start), style: style));
+      }
+
+      final matched = match.group(0)!;
+      TextStyle current = style ?? const TextStyle();
+
+      if (matched.startsWith('**') && matched.endsWith('**')) {
+        current = current.copyWith(fontWeight: FontWeight.bold);
+      } else if (matched.startsWith('*') && matched.endsWith('*')) {
+        current = current.copyWith(fontStyle: FontStyle.italic);
+      } else if (matched.startsWith('~~') && matched.endsWith('~~')) {
+        current = current.copyWith(decoration: TextDecoration.lineThrough);
+      } else if (matched.startsWith('`') && matched.endsWith('`')) {
+        current = current.copyWith(
+          backgroundColor: _codeBackground,
+          color: _codeColor,
+          fontFamily: 'monospace',
+        );
+      } else if (matched.startsWith('<u>') && matched.endsWith('</u>')) {
+        current = current.copyWith(decoration: TextDecoration.underline);
+      }
+
+      spans.add(TextSpan(text: matched, style: current));
+      lastEnd = match.end;
+    }
+
+    if (lastEnd < text.length) {
+      spans.add(TextSpan(text: text.substring(lastEnd), style: style));
+    }
+
+    return spans;
   }
 }
