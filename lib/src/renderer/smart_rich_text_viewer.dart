@@ -56,11 +56,11 @@ class SmartRichTextViewer extends StatelessWidget {
         if (href == null || href.isEmpty) return;
         _handleLinkTap(context, href, text);
       },
-      imageBuilder: (uri, title, alt) {
+      sizedImageBuilder: (config) {
         return SrqImageWidget(
-          url: uri.toString(),
-          alt: alt ?? title ?? 'image',
-          config: config,
+          url: config.uri.toString(),
+          alt: config.alt ?? config.title ?? 'image',
+          config: this.config,
         );
       },
       checkboxBuilder: (checked) => Padding(

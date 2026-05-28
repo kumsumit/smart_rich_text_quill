@@ -76,7 +76,7 @@ class _NetworkImg extends StatelessWidget {
           strokeWidth: 2,
         ),
       ),
-      errorWidget: (_, __, ___) => Column(
+      errorBuilder: (_, __, ___) => Column(
         mainAxisSize: MainAxisSize.min,
         children: const [
           Icon(Icons.broken_image_outlined, color: Colors.white54, size: 48),
