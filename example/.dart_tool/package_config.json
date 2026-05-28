@@ -51,9 +51,9 @@
     },
     {
       "name": "code_assets",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/code_assets-1.0.0",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/code_assets-1.2.0",
       "packageUri": "lib/",
-      "languageVersion": "3.9"
+      "languageVersion": "3.10"
     },
     {
       "name": "collection",
@@ -123,7 +123,7 @@
     },
     {
       "name": "file_picker",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/git/flutter_file_picker-6fb6f482339089402b5c4be7bbcc9c291f469308/",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/git/flutter_file_picker-168c544cdb2686d099b2ac26bf58abf2688592bc/",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
@@ -155,7 +155,7 @@
       "name": "flutter",
       "rootUri": "file:///Users/amitsharan/development/flutter/packages/flutter",
       "packageUri": "lib/",
-      "languageVersion": "3.9"
+      "languageVersion": "3.12"
     },
     {
       "name": "flutter_lints",
@@ -171,7 +171,7 @@
     },
     {
       "name": "flutter_plugin_android_lifecycle",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/git/flutter_plugin_android_lifecycle-43ddcde21e64550ad0d2f48e4d6fd4c914f2388b/",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/git/flutter_plugin_android_lifecycle-0d0e3ec7e6a75697cf54e6f59c19e670c4ddc7c2/",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
@@ -179,19 +179,13 @@
       "name": "flutter_test",
       "rootUri": "file:///Users/amitsharan/development/flutter/packages/flutter_test",
       "packageUri": "lib/",
-      "languageVersion": "3.9"
+      "languageVersion": "3.12"
     },
     {
       "name": "flutter_web_plugins",
       "rootUri": "file:///Users/amitsharan/development/flutter/packages/flutter_web_plugins",
       "packageUri": "lib/",
-      "languageVersion": "3.9"
-    },
-    {
-      "name": "glob",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/glob-2.1.3",
-      "packageUri": "lib/",
-      "languageVersion": "3.3"
+      "languageVersion": "3.12"
     },
     {
       "name": "hive_ce",
@@ -201,7 +195,7 @@
     },
     {
       "name": "hooks",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/hooks-1.0.3",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/hooks-2.0.0",
       "packageUri": "lib/",
       "languageVersion": "3.10"
     },
@@ -225,7 +219,7 @@
     },
     {
       "name": "image_picker_android",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/git/image_picker_android-a3bed6273adfaf26eff740b08cac56a99fd14b6b/",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/git/image_picker_android-eea66c295ac474f343064c7a7427a169760f42a6/",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
@@ -273,19 +267,19 @@
     },
     {
       "name": "jni",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/git/jni-7f02ac81334c7ee959276d051ef722a3bb4263db/",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/git/jni-7066eb931fd304f47269120ea292c09d31f1f9d0/",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
     {
       "name": "jni_flutter",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/git/jni_flutter-868141e96e4e546d3aecf1b8be034b3c08e548f0/",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/git/jni_flutter-1688605a05937ad49eb74626a2192291749146b0/",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
     {
       "name": "json_annotation",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/json_annotation-4.11.0",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/json_annotation-4.12.0",
       "packageUri": "lib/",
       "languageVersion": "3.9"
     },
@@ -327,9 +321,9 @@
     },
     {
       "name": "matcher",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/matcher-0.12.19",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/matcher-0.12.20",
       "packageUri": "lib/",
-      "languageVersion": "3.7"
+      "languageVersion": "3.10"
     },
     {
       "name": "material_color_utilities",
@@ -339,7 +333,7 @@
     },
     {
       "name": "meta",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/meta-1.17.0",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/meta-1.18.2",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
@@ -350,14 +344,8 @@
       "languageVersion": "3.2"
     },
     {
-      "name": "native_toolchain_c",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/native_toolchain_c-0.17.6",
-      "packageUri": "lib/",
-      "languageVersion": "3.10"
-    },
-    {
       "name": "objective_c",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/objective_c-9.3.0",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/objective_c-9.4.1",
       "packageUri": "lib/",
       "languageVersion": "3.10"
     },
@@ -369,7 +357,7 @@
     },
     {
       "name": "open_filex",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/git/open_file-d18e5d0b29c0ae8d0af03eb7a115e66883668a2a/",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/git/open_file-edb28f34038124479fd22acf4c88cb47e2079fd4/",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
@@ -393,7 +381,7 @@
     },
     {
       "name": "path_provider_android",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/git/path_provider_android-2536ee3169c7a51cd06b9af64be27e53dd7193ef/",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/git/path_provider_android-aaa2f06c118301b97329307430334c0d0011b773/",
       "packageUri": "lib/",
       "languageVersion": "3.11"
     },
@@ -455,7 +443,7 @@
       "name": "sky_engine",
       "rootUri": "file:///Users/amitsharan/development/flutter/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
-      "languageVersion": "3.9"
+      "languageVersion": "3.10"
     },
     {
       "name": "smart_rich_text_quill",
@@ -495,9 +483,9 @@
     },
     {
       "name": "test_api",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/test_api-0.7.10",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/test_api-0.7.12",
       "packageUri": "lib/",
-      "languageVersion": "3.7"
+      "languageVersion": "3.10"
     },
     {
       "name": "typed_data",
@@ -507,9 +495,9 @@
     },
     {
       "name": "vector_math",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/vector_math-2.2.0",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/vector_math-2.3.0",
       "packageUri": "lib/",
-      "languageVersion": "3.1"
+      "languageVersion": "3.7"
     },
     {
       "name": "vm_service",
@@ -525,7 +513,7 @@
     },
     {
       "name": "win32",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/win32-6.2.0",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/win32-6.3.0",
       "packageUri": "lib/",
       "languageVersion": "3.10"
     },
@@ -555,8 +543,8 @@
     }
   ],
   "generator": "pub",
-  "generatorVersion": "3.11.5",
+  "generatorVersion": "3.12.0",
   "flutterRoot": "file:///Users/amitsharan/development/flutter",
-  "flutterVersion": "3.41.9",
+  "flutterVersion": "3.45.0-1.0.pre-37",
   "pubCache": "file:///Users/amitsharan/.pub-cache"
 }
